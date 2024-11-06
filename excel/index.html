@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>全国东方Project线下活动表格</title>
+    <link rel="stylesheet" href="css/style.css">
+    <link rel="stylesheet" href="css/tool.css">
+</head>
+<body>
+<div class="app">
+    <div class="image-container">
+        <img width="125px" src="https://thonly.cc/images/Touhou_Activities_Wiki_Logo.svg" alt="Touhou Activities Wiki Logo">
+    </div>
+    <div class="title">全国东方Project线下活动表格</div>
+    <p>
+        Tips：如果您想获得编辑权限，请联系QQ群内管理员。如果您发现表格中信息有误，欢迎来群里捉虫。<a target="_blank" href="https://qm.qq.com/cgi-bin/qm/qr?_wv=1027&k=yI4hzduOvfoisCSfcG7RRD5O5daf_UDi"style="color:#EC7063;">东方Project线下活动维基群：868256565</a>
+    </p>
+
+    <div class="search-container">
+        <input type="text" id="search" placeholder="搜索活动(可筛选省份)..." onkeyup="searchTable()">
+    </div>
+
+    <label class="condition">
+        <select class="year" name="年份" id="year">
+            <option value="2025">2025</option>
+            <option value="2024">2024</option>
+            <option value="ALL">全部</option>
+        </select>
+        <select class="type" name="类型" id="type">
+            <option value="ALL">全部</option>
+            <option value="TOUHOU_ONLY">THO</option>
+            <option value="TOUHOU_PARTY">THP&茶会</option>
+            <option value="SCHOOL_PARTY">校联</option>
+        </select>
+    </label>
+
+    <table class="excel">
+        <thead>
+        <tr>
+            <th>状态</th>
+            <th>名字</th>
+            <th>地区</th>
+            <th>日期</th>
+            <th>QQ群</th>
+        </tr>
+        </thead>
+        <tbody>
+        </tbody>
+    </table>
+
+    <center>
+        <p><a target="_blank" href="https://thonly.cc/">前往主站</a></p>
+    </center>
+    <div class="tool">
+        <div class="back-to-top" style="display: block;">
+            <svg t="1706776294481" class="icon" viewBox="0 0 1024 1024" version="1.1" xmlns="http://www.w3.org/2000/svg" p-id="6256" width="24" height="24">
+                <path d="M153.979 174.004h718.833c16.142 0 29.127-12.986 29.127-29.127s-12.986-29.127-29.127-29.127h-718.833c-16.142 0-29.127 12.986-29.127 29.127s12.986 29.127 29.127 29.127zM533.845 246.701c-11.408-11.408-29.855-11.408-41.142 0l-351.952 351.952c-11.408 11.408-11.408 29.855 0 41.142 5.703 5.703 13.107 8.496 20.631 8.496s14.928-2.791 20.631-8.496l302.194-302.194v542.614c0 16.142 12.986 29.127 29.127 29.127s29.127-12.986 29.127-29.127v-542.614l302.194 302.194c5.703 5.703 13.107 8.496 20.631 8.496s14.928-2.791 20.631-8.496c11.408-11.408 11.408-29.855 0-41.142l-352.074-351.952z" fill="" p-id="6257"></path>
+            </svg>
+        </div>
+        <div class="modal">
+            <div class="modal-content">
+                <div class="modal-ctx"></div>
+            </div>
+        </div>
+    </div>
+</div>
+<script src="src/index.js"></script>
+<script>
+    initMain("ALL");
+</script>
+</body>
+</html>

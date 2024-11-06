@@ -1,0 +1,202 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>全国东方Project线下活动地图</title>
+    <script src="js/echarts.min.js"></script>
+    <script src="js/china.js"></script>
+    <style>
+        body, html {
+            height: 100%;
+            margin: 0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        #main {
+            width: 1920px;
+            height: 1080px;
+        }
+        .popup-background {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.5);
+            display: none;
+            justify-content: center;
+            align-items: center;
+        }
+        .popup {
+            background-color: white;
+            padding: 20px;
+            border-radius: 5px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.5);
+        }
+        a:link {
+            color:#FF0000;
+            text-decoration:none;
+            /*text-decoration:underline;*/
+        }
+        a:visited {
+            color: #ff00cc;
+            text-decoration:none;
+        }
+        a:hover {
+            color:#000000;
+            text-decoration:none;
+        }
+        a:active {
+            color: #ff6d6d;
+            text-decoration:none;
+        }
+
+        button {
+            background-color: #ff008e;
+            border: none;
+            color: white;
+            padding: 5px 15px;
+            text-align: center;
+            text-decoration: none;
+            display: inline-block;
+            font-size: 16px;
+            margin: 4px 2px;
+            cursor: pointer;
+            border-radius: 10px;
+            box-shadow: 0 4px 8px 0 rgba(0,0,0,0.2), 0 6px 20px 0 rgba(0,0,0,0.19);
+            transition: box-shadow 0.3s, transform 0.3s;/
+        }
+
+        button:active {
+            background-color: #ff1199;
+            border: none;
+            color: white;
+            padding: 4px 12px;
+            text-align: center;
+            text-decoration: none;
+            display: inline-block;
+            font-size: 16px;
+            margin: 4px 2px;
+            cursor: pointer;
+            border-radius: 10px;
+            box-shadow: 0 4px 8px 0 rgba(0,0,0,0.2), 0 6px 20px 0 rgba(0,0,0,0.19);
+            transition: box-shadow 0.3s, transform 0.3s;
+        }
+
+        button:hover {
+            box-shadow: 0 10px 20px rgba(0,0,0,0.3);
+            transform: translateY(-5px);
+        }
+    </style>
+</head>
+<body>
+<div id="main"></div>
+<div class="popup-background" id="popupBackground">
+    <div class="popup" id="popup">
+        <h2 id="popupTitle"></h2>
+        <div id="popupContent"></div>
+        <button onclick="closePopup()">关闭</button>
+    </div>
+</div>
+
+<script>
+    const mainDiv = document.getElementById("main")
+    mainDiv.style.width = window.innerWidth
+    mainDiv.style.height = window.innerHeight
+
+    var chart = echarts.init(document.getElementById('main'));
+
+    var option = {
+        title: {
+            text: '中国地图',
+            left: 'center'
+        },
+        tooltip: {
+            trigger: 'item'
+        },
+        geo: {
+            map: 'china',
+            roam: true,
+            label: {
+                emphasis: {
+                    show: true
+                }
+            },
+            itemStyle: {
+                normal: {
+                    areaColor: '#d1e6fa',
+                    borderColor: '#111'
+                },
+                emphasis: {
+                    areaColor: '#a0d6ff'
+                }
+            }
+        },
+        series: [
+            {
+                name: '省份',
+                type: 'map',
+                map: 'china',
+                geoIndex: 0,
+                emphasis: {
+                    label: {
+                        show: true
+                    }
+                },
+                data: []
+            }
+        ]
+    };
+
+    chart.setOption(option);
+
+    chart.on('click', function (params) {
+        openPopup(params.name);
+    });
+    
+    function makeDom(title) {
+        let page = "https://thonly.cc/index.php?title="+title;
+        return `<a href='${page}' target="_blank">${title}</a><br>`
+    }
+    function openPopup(province) {
+        let popupBackground = document.getElementById('popupBackground');
+        let popupTitle = document.getElementById('popupTitle');
+        let popupContent = document.getElementById('popupContent');
+        fetch(`https://thonly.cc/api.php?action=query&list=categorymembers&cmtitle=分类:${province}活动&cmtype=page|subcat|file&format=json&utf8=1`)
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error('Network response was not ok ' + response.statusText);
+                }
+                return response.json();
+            })
+            .then(json => {
+                let divBlock = "";
+                let queryJson = json["query"];
+                let categories = queryJson["categorymembers"]
+                for (let i = 0; i <= categories.length - 1; ++i) {
+                    let pageInfo = categories[i];
+                    let pageId = pageInfo["pageid"];
+                    let pageNs = pageInfo["ns"];
+                    let pageTitle = pageInfo["title"];
+                    if(!pageTitle.includes("模板:")) {
+                        divBlock += "    ·   " + makeDom(pageTitle)
+                    }
+                }
+                popupTitle.innerHTML = `<a target="_blank" href="https://thonly.cc/index.php?title=分类:${province}活动">${province}东方Project线下活动</a>`;
+                popupContent.innerHTML = divBlock+"<br>";
+                popupBackground.style.display = 'flex';
+            })
+            .catch(error => {
+                console.error('There has been a problem with your fetch operation:', error);
+            });
+    }
+
+    function closePopup() {
+        let popupBackground = document.getElementById('popupBackground');
+        popupBackground.style.display = 'none';
+    }
+</script>
+</body>
+</html>

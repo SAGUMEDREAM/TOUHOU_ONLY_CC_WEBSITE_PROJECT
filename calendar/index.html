@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <title>东方Project线下活动日程信息</title>
+    <meta charset="UTF-8">
+    <link rel="stylesheet" type="text/css" href="./css/evo-calendar.css"/>
+    <link rel="stylesheet" type="text/css" href="./css/evo-calendar.midnight-blue.css"/>
+    <script src="./js/jquery.min.js"></script>
+    <script src="./js/evo-calendar.js"></script>
+    <script src="./js/google_docs.js"></script>
+    <script>
+        function randomStr(length) {
+            let result = '';
+            const characters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
+
+            for (let i = 0; i < length; i++) {
+                result += characters.charAt(Math.floor(Math.random() * characters.length));
+            }
+            return result;
+        }
+        function setBtn() {
+            let myDivArray = document.querySelectorAll('.day');
+            let infoBtn = document.querySelector('#eventListToggler');
+            myDivArray.forEach(myDiv => {
+                myDiv.addEventListener('click', function() {
+                    if(document.querySelector(".event-hide")) {
+                        infoBtn.click()
+                    }
+                });
+            })
+        }
+        let dateEvents = [];
+
+        function load(blobUrl) {
+            let xhr0 = new XMLHttpRequest();
+            xhr0.open('GET', `${blobUrl}`, true);
+            xhr0.onreadystatechange = function() {
+                if (xhr0.readyState === 4 && xhr0.status === 200) {
+                    let data = JSON.parse(xhr0.responseText);
+                    data.forEach(eData => {
+                        if (eData["QQGroup"] == null) eData["QQGroup"] = eData["QQgroup"];
+                        dateEvents.push({
+                            id: randomStr(8),
+                            name: eData["name"],
+                            date: eData["date"],
+                            description: "活动群群号：" + eData["QQGroup"],
+                            type: "holiday",
+                            color: "#d8638c"
+                        });
+                    });
+                } else if (xhr0.readyState === 4) {
+                    console.error('Network response was not ok ' + xhr0.statusText);
+                }
+            };
+            xhr0.send();
+        }
+        const apiArray = [
+            "https://thonly.cc/proxy_google_doc/v4/spreadsheets/13xQAWuJkd8u4PFfMpMOrpJSb4RAM1isENnkMUCFFpK4/values/Activities!A2:E200?key=AIzaSyAKE37_qaMY4aYDHubmX_yfebfYmnx2HUw",
+            //"https://thonly.cc/proxy_google_doc/v4/spreadsheets/1XV_9hMVd2IKisLA5bk7hU8E7nyuXIQdE9hAe_xlCDmU/values/Activities!A2:E200?key=AIzaSyAKE37_qaMY4aYDHubmX_yfebfYmnx2HUw"
+        ];
+        const apiArrayBeta = [
+            "https://thonly.cc/proxy_google_doc/v4/spreadsheets/148VYXIk2ILFsYcYYBhPQjanbxevmxofUiAW662jvGeY/values:batchGet?ranges=THO!A2:E200&ranges=THP%26tea-party!A2:E200&ranges=School!A2:E200&key=AIzaSyAKE37_qaMY4aYDHubmX_yfebfYmnx2HUw"
+        ];
+        const version = 20241106;
+        apiArray.forEach((api) => {
+            let googJson = getGoogleJson(api);
+            load(googJson);
+        });
+        apiArrayBeta.forEach((api) => {
+            let googMultiJson = getMultiGoogleJson(api);
+            load(googMultiJson);
+        });
+        $(document).ready(function() {
+            const settingValue = {
+                theme: null,
+                format: "mm/dd/yyyy",
+                titleFormat: "MM yyyy",
+                eventHeaderFormat: "MM d, yyyy",
+                firstDayOfWeek: 0,
+                language: "zh",
+                todayHighlight: false,
+                sidebarDisplayDefault: true,
+                sidebarToggler: true,
+                eventDisplayDefault: true,
+                eventListToggler: true,
+                calendarEvents: dateEvents
+            };
+            $('#calendar').evoCalendar(settingValue);
+            setBtn();
+        });
+        console.log(`*** 东方Project线下活动维基 ***\n- Built Version: ${version}\n- Code: 稀神灵梦`);
+    </script>
+</head>
+<style>
+    #eventListToggler #sidebarToggler {
+        border-radius: 12px;
+    }
+</style>
+<body>
+<div id="calendar"></div>
+</body>
+</html>

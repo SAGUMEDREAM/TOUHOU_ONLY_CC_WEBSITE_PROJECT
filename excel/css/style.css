@@ -1,0 +1,212 @@
+body {
+    font-family:'-apple-system','BlinkMacSystemFont','PingFang SC','Segoe UI Variable Display','Roboto','Helvetica Neue','Segoe UI','Microsoft YaHei UI','Microsoft YaHei','Yu Gothic UI',sans-serif,'Apple Color Emoji','Segoe UI Emoji','Segoe UI Symbol';
+    background-color: #f4f4f4;
+    color: #333;
+    line-height: 1.6;
+    margin: 0;
+    padding: 0;
+}
+
+.app {
+    width: 90%;
+    max-width: 1200px;
+    margin: 40px auto;
+    padding: 20px;
+    background: #fff;
+    border-radius: 8px;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    overflow-x: auto;
+}
+
+.title {
+    font-size: 28px;
+    font-weight: bold;
+    text-align: center;
+    margin-bottom: 20px;
+    color: #444;
+}
+
+table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-bottom: 20px;
+}
+
+table, th, td {
+    border: 1px solid #ddd;
+}
+
+th, td {
+    padding: 12px;
+    text-align: left;
+    white-space: nowrap;
+}
+
+th {
+    background-color: #f7f7f7;
+    color: #555;
+    text-transform: uppercase;
+    font-weight: 600;
+}
+
+tr:nth-child(even) {
+    background-color: #f9f9f9;
+}
+
+tr:hover {
+    background-color: #f1f1f1;
+}
+
+.cancelled {
+    color: red;
+    font-weight: bold;
+}
+
+@media (max-width: 768px) {
+    .app {
+        width: 100%;
+        /*padding: 10px;*/
+        box-shadow: none;
+    }
+
+    .title {
+        font-size: 24px;
+        margin-bottom: 15px;
+    }
+
+    table, th, td {
+        border: none;
+    }
+
+    th, td {
+        padding: 10px;
+        font-size: 14px;
+        white-space: normal;
+    }
+
+    table {
+        display: block;
+        overflow-x: auto;
+        -webkit-overflow-scrolling: touch;
+    }
+}
+
+.image-container {
+    text-align: center;
+    margin: 2px 0;
+}
+
+.image-container img {
+    max-width: 100%;
+    height: auto;
+}
+
+a {
+    text-decoration: none;
+    color: #007bff;
+    font-weight: bold;
+    transition: color 0.3s ease, background-color 0.3s ease;
+    border-radius: 4px;
+    padding: 4px 8px;
+}
+
+a:hover {
+    color: #0056b3;
+    background-color: #e7f0ff;
+    border-radius: 4px;
+    padding: 4px 8px;
+}
+
+a:active {
+    color: #006bda;
+    background-color: #e7f0ff;
+    border-radius: 4px;
+    padding: 3px 6px;
+}
+
+p {
+    margin: 20px 0;
+}
+
+.search-container {
+    margin-bottom: 0.4em;
+    text-align: center;
+}
+
+#search {
+    padding: 8px;
+    width: 100%;
+    max-width: 400px;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+    box-shadow: 0 0 5px rgba(0, 0, 0, 0.1);
+    font-size: 16px;
+    outline: none;
+}
+
+#search:focus {
+    border-color: #66afe9;
+    box-shadow: 0 0 5px rgba(0, 0, 0, 0.2);
+}
+
+.condition {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    border-radius: 3px;
+    border: 0;
+    margin-left: auto;
+    margin-right: auto;
+    padding: 0.2em;
+    margin-bottom: 0.5em;
+    gap: 0.2em;
+}
+
+.condition select {
+    display: inline-block;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    border-radius: 4px;
+    border: 1px solid #ccc;
+    padding: 0.5em;
+    width: 10em;
+    outline: none;
+}
+
+select:focus {
+    border-color: #66afe9;
+    box-shadow: 0 0 5px rgba(0, 0, 0, 0.2);
+}
+
+select option {
+    font-size: 16px;
+    color: #555;
+    background-color: #ffffff;
+    padding: 5px;
+    text-align: center;
+}
+
+select option:active {
+    background-color: #d0e0ff;
+    color: #333;
+}
+
+tr td:nth-child(1) {
+    width: 10%;
+}
+tr td:nth-child(2) {
+    width: 30%;
+}
+tr td:nth-child(3) {
+    width: 20%;
+}
+tr td:nth-child(4) {
+    width: 30%;
+}
+tr td:nth-child(5) {
+    width: 10%;
+}
+
+
