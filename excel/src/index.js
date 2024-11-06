@@ -29,7 +29,6 @@ function initMain() {
             let dataSuppler = new DataSuppler();
             year.dataSuppler = dataSuppler;
             initGoogleMultiDocs(API_SOURCE[apisourceKey], dataSuppler);
-            console.log(year)
             YEAR_DATA.set(apisourceKey, year);
         }
     }
@@ -88,10 +87,6 @@ function render() {
                     joinRenderQueue(dataSuppler[dataSupplerKey]);
                 }
             } else {
-                console.log(YEAR_DATA)
-                console.log(SELECT_TYPE)
-                console.log(dataSuppler)
-                console.log(dataSuppler[SELECT_TYPE])
                 joinRenderQueue(dataSuppler[SELECT_TYPE]);
             }
         }
