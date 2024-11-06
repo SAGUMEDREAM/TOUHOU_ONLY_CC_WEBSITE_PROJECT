@@ -54,18 +54,11 @@
             };
             xhr0.send();
         }
-        const apiArray = [
-            "https://thonly.cc/proxy_google_doc/v4/spreadsheets/13xQAWuJkd8u4PFfMpMOrpJSb4RAM1isENnkMUCFFpK4/values/Activities!A2:E200?key=AIzaSyAKE37_qaMY4aYDHubmX_yfebfYmnx2HUw",
-            //"https://thonly.cc/proxy_google_doc/v4/spreadsheets/1XV_9hMVd2IKisLA5bk7hU8E7nyuXIQdE9hAe_xlCDmU/values/Activities!A2:E200?key=AIzaSyAKE37_qaMY4aYDHubmX_yfebfYmnx2HUw"
-        ];
         const apiArrayBeta = [
-            "https://thonly.cc/proxy_google_doc/v4/spreadsheets/148VYXIk2ILFsYcYYBhPQjanbxevmxofUiAW662jvGeY/values:batchGet?ranges=THO!A2:E200&ranges=THP%26tea-party!A2:E200&ranges=School!A2:E200&key=AIzaSyAKE37_qaMY4aYDHubmX_yfebfYmnx2HUw"
+            "https://thonly.cc/proxy_google_doc/v4/spreadsheets/13ykPzw9cKqQVXXEwhCuX_mitQegHdFHjZtGdqT6tlmk/values:batchGet?ranges=THO!A2:E200&ranges=THP%26tea-party!A2:E200&ranges=School!A2:E200&ranges=LIVE!A2:E200&key=AIzaSyAKE37_qaMY4aYDHubmX_yfebfYmnx2HUw",
+            "https://thonly.cc/proxy_google_doc/v4/spreadsheets/1mMUsvTdyz07BtnLbs0WEr5gdvsRkjftnrek_n5HSdNU/values:batchGet?ranges=THO!A2:E200&ranges=THP%26tea-party!A2:E200&ranges=School!A2:E200&ranges=LIVE!A2:E200&key=AIzaSyAKE37_qaMY4aYDHubmX_yfebfYmnx2HUw"
         ];
         const version = 20241106;
-        apiArray.forEach((api) => {
-            let googJson = getGoogleJson(api);
-            load(googJson);
-        });
         apiArrayBeta.forEach((api) => {
             let googMultiJson = getMultiGoogleJson(api);
             load(googMultiJson);
