@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MediaWiki API Example</title>
+</head>
+<body>
+<h1>创建新页面</h1>
+<form id="createPageForm">
+    <label for="title">页面标题：</label>
+    <input type="text" id="title" name="title" required><br><br>
+    <label for="content">页面内容：</label><br>
+    <textarea id="content" name="content" rows="10" cols="50" required></textarea><br><br>
+    <button type="submit">创建页面</button>
+</form>
+
+<script>
+    // MediaWiki API URL
+    const WIKI_API_URL = '/api.php'; // Assuming the API endpoint is at this path
+
+    // 获取 CSRF 令牌
+    async function getCsrfToken() {
+        const response = await fetch(WIKI_API_URL, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/x-www-form-urlencoded'
+            },
+            body: new URLSearchParams({
+                action: 'query',
+                meta: 'tokens',
+                type: 'csrf',
+                format: 'json'
+            }),
+            credentials: 'include' // Include cookies in the request
+        });
+        const data = await response.json();
+        return data.query.tokens.csrftoken;
+    }
+
+    // 创建新页面
+    async function createPage(csrfToken, title, content) {
+        const response = await fetch(WIKI_API_URL, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/x-www-form-urlencoded'
+            },
+            body: new URLSearchParams({
+                action: 'edit',
+                title: title,
+                text: content,
+                token: csrfToken,
+                format: 'json'
+            }),
+            credentials: 'include' // Include cookies in the request
+        });
+        const data = await response.json();
+        return data;
+    }
+
+    // 处理表单提交
+    document.getElementById('createPageForm').addEventListener('submit', async function(event) {
+        event.preventDefault();
+
+        const title = document.getElementById('title').value;
+        const content = document.getElementById('content').value;
+
+        try {
+            // 获取 CSRF 令牌
+            const csrfToken = await getCsrfToken();
+
+            // 创建新页面
+            const result = await createPage(csrfToken, title, content);
+
+            console.log(result);
+            if (result.edit && result.edit.result === 'Success') {
+                alert('页面创建成功！');
+            } else {
+                alert('页面创建失败：' + JSON.stringify(result));
+            }
+        } catch (error) {
+            console.error('Error:', error);
+            alert('页面创建时出错');
+        }
+    });
+</script>
+</body>
+</html>

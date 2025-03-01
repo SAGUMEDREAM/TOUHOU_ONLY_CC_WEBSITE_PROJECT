@@ -42,6 +42,7 @@ function getGoogleJson(api_url) {
     return URL.createObjectURL(blob);
 }
 function getMultiGoogleJson(api_url) {
+    console.log(api_url)
     let xhr0 = new XMLHttpRequest();
     let result = [];
 
@@ -53,6 +54,7 @@ function getMultiGoogleJson(api_url) {
         let valueRanges = data["valueRanges"];
         valueRanges.forEach(obj => {
             let values = obj["values"];
+            if(values == null) values = [];
             values.forEach(value => {
                 let state = value[0];
                 let name = value[1];

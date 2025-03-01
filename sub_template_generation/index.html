@@ -1,0 +1,396 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title></title>
+    <meta name="description" content="A demo ToDo app made with OOUI">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <!-- jQuery -->
+    <script src="/node_modules/jquery/dist/jquery.min.js"></script>
+    <!-- OOjs -->
+    <script src="/node_modules/oojs/dist/oojs.min.js"></script>
+    <!-- OOUI -->
+    <script src="/node_modules/oojs-ui/dist/oojs-ui.min.js"></script>
+    <!-- OOUI theme -->
+    <script src="/node_modules/oojs-ui/dist/oojs-ui-wikimediaui.min.js"></script>
+    <link rel="stylesheet" href="/node_modules/oojs-ui/dist/oojs-ui-wikimediaui.min.css">
+</head>
+<body>
+    <script>
+        $(function () {
+            const WIKI_API_URL = '/api.php';
+            const isNotEmpty = (element) => {
+                return element !== null && element !== "";
+            }
+            const getCsrfToken = async () => {
+                const response = await fetch(WIKI_API_URL, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/x-www-form-urlencoded'
+                    },
+                    body: new URLSearchParams({
+                        action: 'query',
+                        meta: 'tokens',
+                        type: 'csrf',
+                        format: 'json'
+                    }),
+                    credentials: 'include'
+                });
+                const data = await response.json();
+                return data.query.tokens.csrftoken;
+            }
+
+            const createPage = async (csrfToken, title, content) => {
+                const response = await fetch(WIKI_API_URL, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/x-www-form-urlencoded'
+                    },
+                    body: new URLSearchParams({
+                        action: 'edit',
+                        title: title,
+                        text: content,
+                        token: csrfToken,
+                        format: 'json'
+                    }),
+                    credentials: 'include'
+                });
+                const data = await response.json();
+                return data;
+            }
+            const getUserInfo = async () => {
+                const response = await fetch(WIKI_API_URL, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/x-www-form-urlencoded'
+                    },
+                    body: new URLSearchParams({
+                        action: 'query',
+                        meta: 'userinfo',
+                        uiprop: 'options|email',
+                        format: 'json'
+                    }),
+                    credentials: 'include'
+                });
+                const data = await response.json();
+                return data.query.userinfo;
+            }
+            const testNull = (element) => {
+                if (element[0]) {
+                    return !element[0]["valueName"] !== "";
+                } else {
+                    return false
+                }
+            }
+            const getFileExtension = (str = '') => {
+                const match = str.match(/\.([0-9a-z]+)(?:[\?#]|$)/i);
+                return match ? match[1] : '';
+            }
+
+            const upload = new OO.ui.SelectFileInputWidget();
+            const title = new OO.ui.TextInputWidget();
+            const subTitle = new OO.ui.TextInputWidget();
+            const acUploads = new OO.ui.SelectFileInputWidget({
+                $tabIndexed: $('<a class="oo-ui-buttonElement-button" role="button" tabindex="0" rel="nofollow"><span class="oo-ui-iconElement-icon oo-ui-iconElement-noIcon"></span><span class="oo-ui-labelElement-label">Select files</span><span class="oo-ui-indicatorElement-indicator oo-ui-indicatorElement-noIndicator"></span><input title="" class="oo-ui-inputWidget-input" type="file" tabindex="-1" multiple="multiple"></a>'),
+                multiple: true
+            })
+
+            const tableContainer = $(`<div class="table-container"></div>`);
+            tableContainer.html(`
+                <table id="editable-table">
+                    <thead>
+                        <tr>
+                            <th>类型</th>
+                            <th>日期</th>
+                            <th>地址</th>
+                            <th>摊位数</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td><input class="tableInput valueType" type="text" value=""></td>
+                            <td><input class="tableInput valueDate" type="text" value=""></td>
+                            <td><input class="tableInput valuePlace" type="text" value=""></td>
+                            <td><input class="tableInput valueNumber" type="number" value=""></td>
+                        </tr>
+                    </tbody>
+                </table>`);
+
+            const tableLengths = new OO.ui.NumberInputWidget({
+                value: 1,
+                min: 0,
+                max: 1000,
+                step: 1
+            });
+
+            tableLengths.on('change', function (value) {
+                const tbody = $('#editable-table tbody');
+                const currentRows = tbody.find('tr').length;
+
+                if (value > currentRows) {
+                    for (let i = currentRows; i < value; i++) {
+                        tbody.append(`
+                <tr>
+                    <td><input class="tableInput valueType" type="text" value=""></td>
+                    <td><input class="tableInput valueDate" type="text" value=""></td>
+                    <td><input class="tableInput valuePlace" type="text" value=""></td>
+                    <td><input class="tableInput valueNumber" type="number" value=""></td>
+                </tr>
+            `);
+                    }
+                } else if (value < currentRows) {
+                    tbody.find('tr').slice(value).remove();
+                }
+            });
+
+            const submit = new OO.ui.ButtonWidget({
+                label: '提交',
+                flags: [
+                    'primary',
+                    'progressive'
+                ]
+            });
+
+            const generate = new OO.ui.ButtonWidget({
+                label: '生成',
+                flags: [
+                    'primary',
+                    'progressive'
+                ]
+            });
+
+            const result = new OO.ui.MultilineTextInputWidget({
+                rows: 10,
+                value: ''
+            });
+
+            submit.on('click', async () => {
+                const titleValue = title.getValue();
+                const subTitleValue = subTitle.getValue();
+                const content = result.getValue();
+
+                if (content === null || content === '') {
+                    OO.ui.alert('请在点击生成代码后再创建页面！').done(function () {});
+                    return;
+                }
+
+                OO.ui.confirm('请问是否确认要创建此页面?').done(async function (confirmed) {
+                    if (confirmed) {
+                        try {
+                            let csrfToken = await getCsrfToken();
+                            let userInfo = await getUserInfo();
+                            if (!userInfo.id || !userInfo.emailauthenticated) {
+                                OO.ui.alert('请先登录并验证电子邮件后再进行操作！').done(function () {});
+                                return;
+                            }
+
+                            const file = upload?.currentFiles[0];
+                            if (!file) {
+                                OO.ui.alert('请先选择一个文件进行上传！').done(function () {});
+                                return;
+                            }
+                            const logoName = `${titleValue}-${subTitleValue}Logo.${getFileExtension(file.name)}`
+
+                            const formData = new FormData();
+                            formData.append('action', 'upload');
+                            formData.append('filename', logoName);
+                            formData.append('file', file);
+                            formData.append('token', csrfToken);
+                            formData.append('format', 'json');
+
+                            const response = await fetch(WIKI_API_URL, {
+                                method: "POST",
+                                body: formData,
+                            });
+                            const data = await response.json();
+                            if (data.error) {
+                                OO.ui.alert('文件上传失败：' + data.error.info).done(function () {});
+                                return;
+                            }
+
+                            const acUploadValue = acUploads?.currentFiles;
+                            if (acUploadValue?.length > 0) {
+                                const uploadPromises = acUploadValue.map(async (backFile, index) => {
+                                    if (backFile) {
+                                        const newFileName = `${titleValue}/${subTitleValue}/返照${index + 1}.${getFileExtension(backFile.name)}`;
+
+                                        const formDataForBackFile = new FormData();
+                                        formDataForBackFile.append('action', 'upload');
+                                        formDataForBackFile.append('filename', newFileName);
+                                        formDataForBackFile.append('file', backFile);
+                                        formDataForBackFile.append('token', csrfToken);
+                                        formDataForBackFile.append('format', 'json');
+
+                                        const responseForBackFile = await fetch(WIKI_API_URL, {
+                                            method: "POST",
+                                            body: formDataForBackFile,
+                                        });
+                                        const dataForBackFile = await responseForBackFile.json();
+                                        if (dataForBackFile.error) {
+                                            OO.ui.alert('返照文件上传失败：' + dataForBackFile.error.info).done(function () {});
+                                        }
+                                    }
+                                });
+
+                                try {
+                                    await Promise.all(uploadPromises);
+                                } catch (error) {
+                                    OO.ui.alert(error.message).done(function () {});
+                                }
+                            }
+
+                            const result = await createPage(csrfToken, titleValue, content);
+
+                            if (result.edit && result.edit.result === 'Success') {
+                                OO.ui.alert('页面创建成功！').done(function () {
+                                    window.open(`https://thonly.cc/index.php?title=${titleValue}/${subTitleValue}`);
+                                });
+                            } else {
+                                OO.ui.alert('页面创建失败：' + JSON.stringify(result)).done(function () {});
+                            }
+                        } catch (error) {
+                            console.error('Error:', error);
+                            OO.ui.alert('页面创建时出错：' + error.message).done(function () {});
+                        }
+                    }
+                });
+            });
+
+            generate.on('click', () => {
+                const titleValue = title.getValue();
+                const subTitleValue = subTitle.getValue();
+                const logoNameValue = upload?.currentFiles[0]?.name;
+                const acUploadValue = acUploads?.currentFiles;
+                const place_info_arr = [];
+                const trs = document.querySelectorAll("tbody tr");
+                for (const tr of trs) {
+                    const arr_sub = [];
+                    const tds = tr.querySelectorAll("td input");
+                    for (const td of tds) {
+                        arr_sub.push(td.value);
+                    }
+                    place_info_arr.push(arr_sub);
+                }
+
+                let max_days = 0;
+                let output = ""
+                output += '{{具体展会}}\n';
+                output += '\n'
+                output += `{{具体展会/LOGO|${titleValue}-${subTitleValue}Logo.${getFileExtension(logoNameValue)}}\n`
+                for (let index = 0; index < place_info_arr.length; index++) {
+                    const place_info = place_info_arr[index];
+                    const day = index + 1;
+                    output += `{{具体展会/简介/日程\n`;
+                    output += `|标题=Day ${index + 1}\n`;
+                    output += `|类型=${place_info[0]}\n`;
+                    output += `|日期=${place_info[1]}\n`;
+                    output += `|地址=${place_info[2]}\n`;
+                    output += `|摊位数=${place_info[3]}\n`;
+                    output += `}}\n`;
+                    if (day > max_days) max_days = day;
+                }
+                output += `\n`;
+                output += `== 返图 ==\n`;
+                output += `=== Day 1 - Day ${max_days} ===\n`;
+                output += `<gallery mode="packed" heights="300px">\n`;
+                for (let index = 0; index < acUploadValue.length; index++) {
+                    const acUpload = acUploadValue[index];
+                    output += `${titleValue}/${subTitleValue}/返照${index + 1}.${getFileExtension(acUpload?.name)}|返照${index + 1}\n`
+                }
+                output += `</gallery>\n`;
+
+                result.setValue(output);
+            });
+
+            $('.wrapper').append(
+                $("<h3>基本信息</h3>"),
+                $("<p>活动Logo:</p>"),
+                upload.$element,
+                $("<p>父活动页面标题:</p>"),
+                title.$element,
+                $("<p>活动子名称/子页面标题:</p>"),
+                subTitle.$element,
+                $("<h3>场地信息:</h3>"),
+                tableContainer,
+                $("<p>表格长度:</p>"),
+                tableLengths.$element,
+                $("<h3>场照上传:</h3>"),
+                acUploads.$element,
+                $("<p>输出结果:</p>"),
+                result.$element,
+                $("<br>"),
+                submit.$element,
+                generate.$element
+            );
+        });
+    </script>
+    <div class="wrapper">
+        <h2>子活动页面生成器</h2>
+    </div>
+    <style>
+        .wrapper {
+
+        }
+
+        .table-container {
+            display: block;
+            max-width: 50em;
+            unicode-bidi: isolate;
+        }
+
+        .table-container table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-bottom: 20px;
+        }
+
+        #editable-table {
+            text-align: center;
+        }
+
+        #editable-table tbody {
+            border-color: inherit;
+        }
+
+        #editable-table thead tr {
+            background-color: #f9fafb;
+            color: #000;
+        }
+
+        #editable-table th {
+            padding: 12px;
+            font-size: 16px;
+        }
+
+        #editable-table tr,
+        #editable-table td {
+            text-align: center;
+            vertical-align: middle;
+            padding: 12px;
+            font-size: 16px;
+        }
+
+        #editable-table th, #editable-table td {
+            border: 1px solid #ddd;
+        }
+
+        #editable-table tr {
+            border-collapse: collapse;
+        }
+
+        .tableInput {
+            padding: 8px;
+            width: 90%;
+            border: none;
+            outline: none;
+            margin: 0;
+            -webkit-appearance: none;
+            -moz-appearance: none;
+            appearance: none;
+            background-image: none;
+            background-color: transparent;
+            font-size: inherit;
+        }
+    </style>
+</body>
+</html>
