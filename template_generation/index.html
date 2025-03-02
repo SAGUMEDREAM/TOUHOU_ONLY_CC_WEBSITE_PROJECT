@@ -66,6 +66,20 @@
                 "讲座类活动",
                 "茶会类活动",
             ];
+            const getFileExtension = (filename = '') => {
+                return filename.split('.').pop();
+            };
+            const filterProvinceName = (fullName = '') => {
+                const suffixes = ["省", "自治区", "特别行政区"];
+
+                for (const suffix of suffixes) {
+                    if (fullName.endsWith(suffix)) {
+                        return fullName.replace(suffix, "");
+                    }
+                }
+
+                return fullName;
+            }
             const isNotEmpty = (element) => {
                 return element !== null && element !== "";
             }
@@ -196,6 +210,7 @@
             const qq_group = new OO.ui.TextInputWidget({
                 showButtons: false
             });
+
             const bilibili_link = new OO.ui.TextInputWidget();
             const weibo_link = new OO.ui.TextInputWidget();
             const website_link = new OO.ui.TextInputWidget();
@@ -230,6 +245,11 @@
                 max: 1000,
                 step: 1
             });
+
+            const eventPicUploads = new OO.ui.SelectFileInputWidget({
+                $tabIndexed: $('<a class="oo-ui-buttonElement-button" role="button" tabindex="0" rel="nofollow"><span class="oo-ui-iconElement-icon oo-ui-iconElement-noIcon"></span><span class="oo-ui-labelElement-label">Select files</span><span class="oo-ui-indicatorElement-indicator oo-ui-indicatorElement-noIndicator"></span><input title="" class="oo-ui-inputWidget-input" type="file" tabindex="-1" multiple="multiple"></a>'),
+                multiple: true
+            })
 
             tableLengths.on('change', function (value) {
                 const tbody = $('#editable-table tbody');
@@ -274,13 +294,14 @@
             });
 
             submit.on('click', async () => {
-                console.log(upload)
                 const titleValue = title.getValue();
+                const eventPicUploadsValue = eventPicUploads?.currentFiles;
                 const content = result.getValue();
 
                 // 检查内容是否为空
                 if (content === null || content === '') {
-                    OO.ui.alert('请在点击生成代码后再创建页面！').done(function () {});
+                    OO.ui.alert('请在点击生成代码后再创建页面！').done(function () {
+                    });
                     return;
                 }
 
@@ -295,21 +316,23 @@
 
                             // 检查登录状态和验证状态
                             if (!userInfo.id || !userInfo.emailauthenticated) {
-                                OO.ui.alert('请先登录并验证电子邮件后再进行操作！').done(function () {});
+                                OO.ui.alert('请先登录并验证电子邮件后再进行操作！').done(function () {
+                                });
                                 return;
                             }
 
                             // 获取上传的文件
                             const file = upload.currentFiles[0];  // 确保文件存在
                             if (!file) {
-                                OO.ui.alert('请先选择一个文件进行上传！').done(function () {});
+                                OO.ui.alert('请先选择一个文件进行上传！').done(function () {
+                                });
                                 return;
                             }
 
                             // 创建 FormData 对象
                             const formData = new FormData();
                             formData.append('action', 'upload');
-                            formData.append('filename', upload.currentFiles[0].name); // 上传的文件名称
+                            formData.append('filename', `${titleValue}.${getFileExtension(upload.currentFiles[0].name)}`); // 上传的文件名称
                             formData.append('file', file); // 实际上传的文件
                             formData.append('token', csrfToken); // CSRF 令牌
                             formData.append('format', 'json'); // 返回的格式为 JSON
@@ -318,6 +341,38 @@
                                 method: "POST",
                                 body: formData,
                             });
+
+                            if (eventPicUploadsValue?.length > 0) {
+                                const uploadPromises = eventPicUploadsValue.map(async (file, index) => {
+                                    if (file) {
+                                        const newFileName = `${titleValue} 宣传图${index + 1}.${getFileExtension(file.name)}`;
+
+                                        const formDataForBackFile = new FormData();
+                                        formDataForBackFile.append('action', 'upload');
+                                        formDataForBackFile.append('filename', newFileName);
+                                        formDataForBackFile.append('file', file);
+                                        formDataForBackFile.append('token', csrfToken);
+                                        formDataForBackFile.append('format', 'json');
+
+                                        const responseForBackFile = await fetch(WIKI_API_URL, {
+                                            method: "POST",
+                                            body: formDataForBackFile,
+                                        });
+                                        const dataForBackFile = await responseForBackFile.json();
+                                        if (dataForBackFile.error) {
+                                            OO.ui.alert('返照文件上传失败：' + dataForBackFile.error.info).done(function () {
+                                            });
+                                        }
+                                    }
+                                });
+
+                                try {
+                                    await Promise.all(uploadPromises);
+                                } catch (error) {
+                                    OO.ui.alert(error.message).done(function () {
+                                    });
+                                }
+                            }
 
                             const data = await response.json();
                             if (data.upload && data.upload.result === 'Success') {
@@ -328,14 +383,17 @@
                                         window.open(`https://thonly.cc/index.php?title=${titleValue}`);
                                     });
                                 } else {
-                                    OO.ui.alert('页面创建失败：' + JSON.stringify(result)).done(function () {});
+                                    OO.ui.alert('页面创建失败：' + JSON.stringify(result)).done(function () {
+                                    });
                                 }
                             } else {
-                                OO.ui.alert('文件上传失败：' + JSON.stringify(data.upload)).done(function () {});
+                                OO.ui.alert('文件上传失败：' + JSON.stringify(data.upload)).done(function () {
+                                });
                             }
                         } catch (error) {
                             console.error('Error:', error);
-                            OO.ui.alert('页面创建时出错：' + error.message).done(function () {});
+                            OO.ui.alert('页面创建时出错：' + error.message).done(function () {
+                            });
                         }
                     }
                 });
@@ -360,7 +418,7 @@
                 output += "{{信息集合框\n";
                 {
                     if (isNotEmpty(titleValue)) output += `|titlename=${titleValue}\n`;
-                    if (isNotEmpty(logoValue)) output += `|图片=${logoValue}\n`;
+                    if (isNotEmpty(logoValue)) output += `|图片=${titleValue}.${getFileExtension(logoValue)}\n`;
                     if (isNotEmpty(titleValue)) output += `|活动名称=${titleValue}\n`;
                     if (isNotEmpty(shortnameValue)) output += `|活动别称=${shortnameValue}\n`;
                     if (isNotEmpty(regionValue)) output += `|地区=${regionValue}\n`;
@@ -402,21 +460,30 @@
                 }
                 output += "}}\n\n";
                 //历届宣传画廊
+                const eventPicUploadsValue = eventPicUploads?.currentFiles;
                 output += `{{历届宣传画廊|\n`
-                output += `{{历届宣传画廊|\n`
-                output += `=== 第一届至第二届 ===
-<gallery mode="packed" heights="300px">
-图片文件|第1届
-</gallery>`
+                output += `=== 第一届至第二届 ===`
+                output += `<gallery mode="packed" heights="300px">\n`
+                // 动态添加图片文件
+                if (eventPicUploadsValue && eventPicUploadsValue.length > 0) {
+                    for (let i = 0; i < eventPicUploadsValue.length; i++) {
+                        const file = eventPicUploadsValue[i];
+                        const fileName = `${titleValue} 宣传图${i + 1}.${getFileExtension(file.name)}`;
+                        output += `${fileName}|第${i + 1}届\n`;
+                    }
+                }
+                output += `</gallery>`
                 output += `\n}}\n\n`
                 //历代LOGO
-                output += `=== 第一届至第二届 ===
-<gallery mode="packed" heights="300px">
-图片文件|第1届LOGO
-</gallery>`
+                output += `== 历代LOGO ==\n`
+                output += `<gallery mode="packed" heights="300px"></gallery>`
                 output += `\n\n`
                 //尾部
                 output += `{{页面注释}}`
+                if (regionValue !== "请选择活动地区") {
+                    const shortRegName = filterProvinceName(regionValue);
+                    output += `{{${shortRegName}活动}}\n`;
+                }
                 result.setValue(output);
             });
 
@@ -451,6 +518,8 @@
                 tableContainer,
                 $("<p>表格长度:</p>"),
                 tableLengths.$element,
+                $("<p>历届宣传图上传:</p>"),
+                eventPicUploads.$element,
                 $("<p>输出结果:</p>"),
                 result.$element,
                 $("<br>"),
