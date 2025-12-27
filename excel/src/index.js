@@ -4,7 +4,8 @@ const excelBody = document.querySelector(".excel");
 const tableBody = document.querySelector(".excel tbody");
 const API_SOURCE = {
     2024: "https://thonly.cc/proxy_google_doc/v4/spreadsheets/13ykPzw9cKqQVXXEwhCuX_mitQegHdFHjZtGdqT6tlmk/values:batchGet?ranges=THO!A2:E200&ranges=THP%26tea-party!A2:E200&ranges=School!A2:E200&ranges=LIVE!A2:E200&key=AIzaSyAKE37_qaMY4aYDHubmX_yfebfYmnx2HUw",
-    2025: "https://thonly.cc/proxy_google_doc/v4/spreadsheets/1mMUsvTdyz07BtnLbs0WEr5gdvsRkjftnrek_n5HSdNU/values:batchGet?ranges=THO!A2:E200&ranges=THP%26tea-party!A2:E200&ranges=School!A2:E200&ranges=LIVE!A2:E200&key=AIzaSyAKE37_qaMY4aYDHubmX_yfebfYmnx2HUw"
+    2025: "https://thonly.cc/proxy_google_doc/v4/spreadsheets/1mMUsvTdyz07BtnLbs0WEr5gdvsRkjftnrek_n5HSdNU/values:batchGet?ranges=THO!A2:E200&ranges=THP%26tea-party!A2:E200&ranges=School!A2:E200&ranges=LIVE!A2:E200&key=AIzaSyAKE37_qaMY4aYDHubmX_yfebfYmnx2HUw",
+    2026: "https://thonly.cc/proxy_google_doc/v4/spreadsheets/19bvThNfuyZ0oqh9dDwhZEekvatX3SOmvdSzjqYDxdsM/values:batchGet?ranges=THO!A2:E200&ranges=THP%26tea-party!A2:E200&ranges=School!A2:E200&ranges=LIVE!A2:E200&key=AIzaSyCZv5xkLypGwWbpdmgYkd5aTDRIQyxyQtg"
 }
 const YEAR_DATA = new Map();
 const DataSuppler = class {
@@ -16,15 +17,17 @@ const DataSuppler = class {
 const Year = class {
     constructor() {
     }
+
     dataSuppler;
 }
 var renderQueue = [];
 var SELECT_YEAR = null;
 var SELECT_TYPE = null;
+
 function initMain() {
     for (const apisourceKey in API_SOURCE) {
         let url = API_SOURCE[apisourceKey]
-        if(url != null && url !== '') {
+        if (url != null && url !== '') {
             let year = new Year();
             let dataSuppler = new DataSuppler();
             year.dataSuppler = dataSuppler;
@@ -36,16 +39,17 @@ function initMain() {
     render();
     console.log(`*** 东方Project线下活动维基 ***\n- Built Version: ${version}\n- Code: 稀神灵梦`);
 }
+
 function createListener() {
     const yearSelect = document.getElementById('year');
     const typeSelect = document.getElementById('type');
     SELECT_YEAR = yearSelect.value;
     SELECT_TYPE = typeSelect.value;
-    yearSelect.addEventListener('change', function(event) {
+    yearSelect.addEventListener('change', function (event) {
         SELECT_YEAR = event.target.value;
         render();
     });
-    typeSelect.addEventListener('change', function(event) {
+    typeSelect.addEventListener('change', function (event) {
         SELECT_TYPE = event.target.value;
         render();
     });
@@ -59,18 +63,19 @@ function createListener() {
             backToTopButton.style.display = 'none';
         }
     });
-    document.querySelector('.back-to-top').addEventListener('click', function(e) {
+    document.querySelector('.back-to-top').addEventListener('click', function (e) {
         e.preventDefault();
-        window.scrollTo({ top: 0, behavior: 'smooth' });
+        window.scrollTo({top: 0, behavior: 'smooth'});
     });
 }
+
 function render() {
     renderQueue = [];
     tableBody.innerHTML = '';
     if (SELECT_YEAR == "ALL") {
         YEAR_DATA.forEach((value, key, map) => {
             let dataSuppler = value.dataSuppler;
-            if(SELECT_TYPE == "ALL") {
+            if (SELECT_TYPE == "ALL") {
                 for (let dataSupplerKey in dataSuppler) {
                     joinRenderQueue(dataSuppler[dataSupplerKey]);
                 }
@@ -80,9 +85,9 @@ function render() {
         });
     } else {
         let data = YEAR_DATA.get(SELECT_YEAR);
-        if(data) {
+        if (data) {
             let dataSuppler = data.dataSuppler;
-            if(SELECT_TYPE == "ALL") {
+            if (SELECT_TYPE == "ALL") {
                 for (let dataSupplerKey in dataSuppler) {
                     joinRenderQueue(dataSuppler[dataSupplerKey]);
                 }
@@ -93,6 +98,7 @@ function render() {
     }
     finishRender();
 }
+
 function finishRender() {
     renderQueue.sort((a, b) => {
         const dateA = a[3] === "待定" ? new Date("9999/12/31") : new Date(a[3]);
@@ -139,13 +145,14 @@ function finishRender() {
         }
     });
     document.querySelectorAll('tr').forEach((value, key, parent) => {
-        if(value.querySelector('th') == null) {
+        if (value.querySelector('th') == null) {
             try {
                 let len = value.querySelectorAll('td').length
-                if(len != 5) {
+                if (len != 5) {
                     value.remove();
                 }
-            } catch (e) {}
+            } catch (e) {
+            }
         }
     });
 }
@@ -172,10 +179,11 @@ function initGoogleMultiDocs(api_url, dataSuppler) {
     };
     xhr0.send();
 }
+
 function searchTable() {
     const query = document.getElementById('search').value.toLowerCase();
     const rows = document.querySelectorAll('.excel tbody tr');
-    
+
     rows.forEach(row => {
         const cells = row.querySelectorAll('td');
         let found = false;
@@ -185,7 +193,7 @@ function searchTable() {
                 found = true;
             }
         });
-        
+
         row.style.display = found ? '' : 'none';
     });
 }
