@@ -31,56 +31,70 @@
         }
         let dateEvents = [];
 
-        function load(blobUrl) {
-            let xhr0 = new XMLHttpRequest();
-            xhr0.open('GET', `${blobUrl}`, true);
-            xhr0.onreadystatechange = function() {
-                if (xhr0.readyState === 4 && xhr0.status === 200) {
-                    let data = JSON.parse(xhr0.responseText);
-                    data.forEach(eData => {
-                        if (eData["QQGroup"] == null) eData["QQGroup"] = eData["QQgroup"];
-                        dateEvents.push({
-                            id: randomStr(8),
-                            name: eData["name"],
-                            date: eData["date"],
-                            description: "活动群群号：" + eData["QQGroup"],
-                            type: "holiday",
-                            color: "#d8638c"
-                        });
-                    });
-                } else if (xhr0.readyState === 4) {
-                    console.error('Network response was not ok ' + xhr0.statusText);
-                }
-            };
-            xhr0.send();
+        // 修改 load 函数：直接接收解析后的数据
+        function load(data) {
+            data.forEach(eData => {
+                if (eData["QQGroup"] == null) eData["QQGroup"] = eData["QQgroup"];
+                dateEvents.push({
+                    id: randomStr(8),
+                    name: eData["name"],
+                    date: eData["date"],
+                    description: "活动群群号：" + eData["QQGroup"],
+                    type: "holiday",
+                    color: "#d8638c"
+                });
+            });
         }
+
         const apiArrayBeta = [
             "https://thonly.cc/proxy_google_doc/v4/spreadsheets/13ykPzw9cKqQVXXEwhCuX_mitQegHdFHjZtGdqT6tlmk/values:batchGet?ranges=THO!A2:E200&ranges=THP%26tea-party!A2:E200&ranges=School!A2:E200&ranges=LIVE!A2:E200&key=AIzaSyAKE37_qaMY4aYDHubmX_yfebfYmnx2HUw",
-            "https://thonly.cc/proxy_google_doc/v4/spreadsheets/1mMUsvTdyz07BtnLbs0WEr5gdvsRkjftnrek_n5HSdNU/values:batchGet?ranges=THO!A2:E200&ranges=THP%26tea-party!A2:E200&ranges=School!A2:E200&ranges=LIVE!A2:E200&key=AIzaSyAKE37_qaMY4aYDHubmX_yfebfYmnx2HUw"
+            "https://thonly.cc/proxy_google_doc/v4/spreadsheets/1mMUsvTdyz07BtnLbs0WEr5gdvsRkjftnrek_n5HSdNU/values:batchGet?ranges=THO!A2:E200&ranges=THP%26tea-party!A2:E200&ranges=School!A2:E200&ranges=LIVE!A2:E200&key=AIzaSyAKE37_qaMY4aYDHubmX_yfebfYmnx2HUw",
+            "https://thonly.cc/proxy_google_doc/v4/spreadsheets/1zBgw7GUBOr-SENH1LRzqbQ-vs9QQCzKn5ea67IipSDU/values:batchGet?ranges=THO!A2:E200&ranges=THP%26tea-party!A2:E200&ranges=School!A2:E200&ranges=LIVE!A2:E200&key=AIzaSyCZv5xkLypGwWbpdmgYkd5aTDRIQyxyQtg"
         ];
-        const version = 20241129;
-        apiArrayBeta.forEach((api) => {
-            let googMultiJson = getMultiGoogleJson(api);
-            load(googMultiJson);
-        });
-        $(document).ready(function() {
-            const settingValue = {
-                theme: null,
-                format: "mm/dd/yyyy",
-                titleFormat: "MM yyyy",
-                eventHeaderFormat: "MM d, yyyy",
-                firstDayOfWeek: 0,
-                language: "zh",
-                todayHighlight: false,
-                sidebarDisplayDefault: true,
-                sidebarToggler: true,
-                eventDisplayDefault: true,
-                eventListToggler: true,
-                calendarEvents: dateEvents
-            };
-            $('#calendar').evoCalendar(settingValue);
-            setBtn();
-        });
+        const version = 20260424;
+
+        // 使用 async 自执行函数来处理异步调用
+        (async () => {
+            // 并发请求所有 API
+            const blobUrls = await Promise.all(apiArrayBeta.map(api => getMultiGoogleJson(api)));
+
+            // 所有请求完成后，再并发加载所有数据
+            // 由于 load 现在需要从 blobUrl 获取数据，我们还需要 fetch blobUrl
+            const loadPromises = blobUrls.map(async (blobUrl) => {
+                if (blobUrl) {
+                    try {
+                        const response = await fetch(blobUrl);
+                        const data = await response.json();
+                        load(data);
+                    } catch (error) {
+                        console.error('Failed to load data:', error);
+                    }
+                }
+            });
+
+            await Promise.all(loadPromises);
+
+            // 所有数据加载完成后初始化日历
+            $(document).ready(function() {
+                const settingValue = {
+                    theme: null,
+                    format: "mm/dd/yyyy",
+                    titleFormat: "MM yyyy",
+                    eventHeaderFormat: "MM d, yyyy",
+                    firstDayOfWeek: 0,
+                    language: "zh",
+                    todayHighlight: false,
+                    sidebarDisplayDefault: true,
+                    sidebarToggler: true,
+                    eventDisplayDefault: true,
+                    eventListToggler: true,
+                    calendarEvents: dateEvents
+                };
+                $('#calendar').evoCalendar(settingValue);
+                setBtn();
+            });
+        })();
+
         console.log(`*** 东方Project线下活动维基 ***\n- Built Version: ${version}\n- Code: 稀神灵梦`);
     </script>
 </head>

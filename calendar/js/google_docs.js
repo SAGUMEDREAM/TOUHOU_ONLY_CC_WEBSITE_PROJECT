@@ -1,13 +1,17 @@
-function getGoogleJson(api_url) {
-    let xhr0 = new XMLHttpRequest();
+async function getGoogleJson(api_url) {
     let result = [];
 
-    xhr0.open('GET', api_url, false);
-    xhr0.send();
+    try {
+        const response = await fetch(api_url);
 
-    if (xhr0.status === 200) {
-        let data = JSON.parse(xhr0.responseText);
-        let values = data["values"];
+        if (!response.ok) {
+            console.error(`Request failed with status: ${response.status}`);
+            return null;
+        }
+
+        const data = await response.json();
+        const values = data["values"];
+
         values.forEach(value => {
             let state = value[0];
             let name = value[1];
@@ -32,26 +36,31 @@ function getGoogleJson(api_url) {
             };
             result.push(object);
         });
-    } else {
-        console.error(`Request failed with status: ${xhr0.status}`);
+    } catch (error) {
+        console.error(`Request failed: ${error}`);
         return null;
     }
-    
+
     const jsonString = JSON.stringify(result);
     const blob = new Blob([jsonString], { type: 'application/json' });
     return URL.createObjectURL(blob);
 }
-function getMultiGoogleJson(api_url) {
-    console.log(api_url)
-    let xhr0 = new XMLHttpRequest();
+
+async function getMultiGoogleJson(api_url) {
+    console.log(api_url);
     let result = [];
 
-    xhr0.open('GET', api_url, false);
-    xhr0.send();
+    try {
+        const response = await fetch(api_url);
 
-    if (xhr0.status === 200) {
-        let data = JSON.parse(xhr0.responseText);
-        let valueRanges = data["valueRanges"];
+        if (!response.ok) {
+            console.error(`Request failed with status: ${response.status}`);
+            return null;
+        }
+
+        const data = await response.json();
+        const valueRanges = data["valueRanges"];
+
         valueRanges.forEach(obj => {
             let values = obj["values"];
             if(values == null) values = [];
@@ -80,8 +89,8 @@ function getMultiGoogleJson(api_url) {
                 result.push(object);
             });
         });
-    } else {
-        console.error(`Request failed with status: ${xhr0.status}`);
+    } catch (error) {
+        console.error(`Request failed: ${error}`);
         return null;
     }
 
